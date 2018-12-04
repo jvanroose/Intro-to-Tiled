@@ -33,7 +33,11 @@ function preload() {
 
     //Load images
     this.load.image("background", "../assets/background.png");
-
+    this.load.image("landscape", "../assets/landscape-tileset.png");
+    this.load.image("props", "../assets/props-tileset.png");
+    
+    this.load.tilemapTiledJSON("tilemap", "../assets/level1.json");    
+    
     //Load spritesheets
     this.load.spritesheet(
         "player",
@@ -46,9 +50,32 @@ function create() {
     createBackground.call(this);
 
     //Start loading in the tilemap here
-
+    var map = this.make.tilemap({key: "tilemap"});
+    var landscape = map.addTilesetImage("landscape-tileset", "landscape");
+    var props = map.addTilesetImage("props-tileset", "props");
+    
+    map.createStaticLayer("backgroundLayer2", [landscape, props], 0, 0);
+    map.createStaticLayer("backgroundLayer", [landscape, props], 0, 0);
+    var collisionLayer = map.createStaticLayer("collisionLayer", [landscape, props], 0, 0);
+    console.log(map);
+    collisionLayer.setCollisionBetween(0, 1000);    
+    
+    var playerSpawn = map.findObject("objectLayer", function (object){
+        if(object.name === "playerSpawn"){
+            return object;
+        }
+    });
+    
+    createPlayer.call(this, playerSpawn);
+    
+    this.physics.add.collider(player, collisionLayer);
+    
     //Change camera settings
-
+    var camera = this.cameras.getCamera("");
+    camera.zoom = 2;
+    camera.startFollow(player);
+    camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    
     createCollision.call(this);
     createObjectAnimations.call(this);
     createKeys.call(this);
