@@ -33,29 +33,62 @@ function preload() {
 
     //Load images
     this.load.image("background", "../assets/background.png");
-
+    this.load.image("landscape", "../assets/landscape-tileset.png");
+    this.load.image("props", "../assets/props-tileset.png");
+    
+    //Load tilemap
+    this.load.tilemapTiledJSON("tilemap", "../assets/level1.json");
+    
     //Load spritesheets
     this.load.spritesheet(
         "player",
         "../assets/player.png",
         {frameWidth: 24, frameHeight: 24}
     );
+    
+    
 }
 
 function create() {
     createBackground.call(this);
 
     //Start loading in the tilemap here
-
+    var map = this.make.tilemap({key: "tilemap"});
+    var landscape = map.addTilesetImage("landscape", "landscape");
+    var props = map.addTilesetImage("props", "props");
+    console.log(map);
+    
+    map.createStaticLayer("backgroundLayer2", [landscape, props], 0, 0);
+    map.createStaticLayer("backgroundLayer", [landscape, props], 0, 0);
+    
+    var playerSpawn = map.findObject("objectLayer", function(object){
+        if(object.name === "playerSpawn"){
+            return object;
+        }
+    });
+    
+    player = this.physics.add.sprite(playerSpawn.x, playerSpawn.y, "player", 0);
+    
+    var collisionLayer = map.createStaticLayer("collisionLayer", [landscape, props], 0, 0);
+    collisionLayer.setCollisionBetween(0, 1000);
+    this.physics.add.collider(player, collisionLayer);
+    
+    
+    map.createStaticLayer("foregroundLayer", [landscape, props], 0, 0);
     //Change camera settings
-
+    var camera = this.cameras.getCamera("");
+    camera.zoom = 2;
+    camera.startFollow(player);
+    camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    
+    
     createCollision.call(this);
     createObjectAnimations.call(this);
     createKeys.call(this);
 }
 
 function update() {
-    checkPlayerMovement();
+    //checkPlayerMovement();
 }
 
 //***************** NON PHASER.SCENE FUNCTIONS ************//
